@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <TlHelp32.h>
 #include <iostream>
+#include <string>
 
 using namespace std;
 
@@ -101,3 +102,10 @@ float FindCurrentReputation(HANDLE hProcess, uintptr_t DataStructureAddress1)
 	float sum = rep1 + rep2 + rep3 + rep4 + rep5 + rep6;
 	return sum;
 }
+
+void clearLastLines(int n) {
+	for (int i = 0; i < n; i++) {
+		cout << "\033[A\033[2K";
+	}
+}
+
