@@ -40,7 +40,7 @@ const short IDREPUTATION = 4;
 const short IDMENU = 1;
 const short IDMEMORY = 11;
 
-class Field {
+class Field { // написать подсветку для включеных скриптов
 private:
 	string field;
 protected:
@@ -99,7 +99,7 @@ public:
 			this->inflationValue = roundToDecimal(value);
 			break;
 		case IDREPUTATION:
-			this->reputationValue = (int)value;
+			this->reputationValue = (int)value + 0.5;
 			break;
 		default:
 			cout << "INCORRECT ID FOR SET" << endl;
@@ -141,8 +141,7 @@ public:
 		return Fields[fieldPos].GetField();
 	}
 
-	void SetField(string newField, short fieldPos = -1)
-	{
+	void SetField(string newField, short fieldPos = -1) {
 		if (fieldPos == -1) fieldPos = this->cursorPos;
 
 		Fields[fieldPos].SetField(newField);
@@ -201,14 +200,17 @@ public:
 	}
 
 	void ClearPreset(short fieldPos = -1) {
+		//Prologue
 		if (fieldPos == -1) fieldPos = this->cursorPos;
 		short currentMenuId = this->FieldPresetStack.back();
 		short currentMenuSize = this->PosMap[currentMenuId];
 		short baseCursorPos = this->cursorPos - currentMenuSize;
+		//Main
 		this->cursorPos = baseCursorPos;
 		for (short i = 0; i < currentMenuSize; i++) {
 			SetField("");
 		}
+		//Epilogue
 		this->cursorPos = baseCursorPos;
 		this->FieldPresetStack.pop_back();
 	}
@@ -233,14 +235,6 @@ int main()
 
 	//Resolve Data Structure Addresses
 	vector<unsigned int> DataStructureOffsets1 = { 0xB8, 0x8, 0x18, 0x78, 0x10, 0x88 };
-	uintptr_t DataStructureAddress1 = FindDMAAddy(hProcess, moduleBase + 0x1EED438, DataStructureOffsets1);
-
-	//Resolve Data pointers
-	uintptr_t moneyAddr = FindDMAAddy(hProcess, DataStructureAddress1, 0x8f8);
-	uintptr_t coruptionAddr = FindDMAAddy(hProcess, DataStructureAddress1, 0x3e8);
-	uintptr_t reputationAddr = FindDMAAddy(hProcess, DataStructureAddress1, 0x808); // default reputation, default = 80
-
-	//uintptr_t inflationAddr = FindDMAAddy(hProcess, DataStructureAddress2, 0x3e8);
 
 	//Console part
 
@@ -256,8 +250,6 @@ int main()
 		console.print();
 
 		choice = _getch();
-		if (choice == -32) choice = _getch();
-		cout << "Code: " << (int)choice << "   " << endl;
 
 		switch (choice)
 		{
@@ -267,7 +259,17 @@ int main()
 			exit(0);
 		case NUM1:
 			float moneyValue, corruptionValue, inflationValue, reputationValue;
+
 			while (true) {
+				//Resolve Data Structure Addresses
+				uintptr_t DataStructureAddress1 = FindDMAAddy(hProcess, moduleBase + 0x1EED438, DataStructureOffsets1);
+
+				//Resolve Data pointers
+				uintptr_t moneyAddr = FindDMAAddy(hProcess, DataStructureAddress1, 0x8f8);
+				uintptr_t coruptionAddr = FindDMAAddy(hProcess, DataStructureAddress1, 0x3e8);
+				uintptr_t reputationAddr = FindDMAAddy(hProcess, DataStructureAddress1, 0x808); // default reputation, default = 80
+				//uintptr_t inflationAddr = FindDMAAddy(hProcess, DataStructureAddress2, 0x3e8);
+
 				reputationValue = FindCurrentReputation(hProcess, DataStructureAddress1);
 				ReadProcessMemory(hProcess, (BYTE*)moneyAddr, &moneyValue, sizeof(moneyValue), nullptr);
 				ReadProcessMemory(hProcess, (BYTE*)coruptionAddr, &corruptionValue, sizeof(corruptionValue), nullptr);
@@ -281,14 +283,17 @@ int main()
 				console.SetFieldPreset("MemoryView");
 				console.print();
 
-				Sleep(200);
+				Sleep(50);
 
-				choice = _getch();
-				if (choice == -32) choice = _getch();
-				if (choice == ESCAPE) {
-					console.ClearPreset();
+				//Epilogue
+
+				if (_kbhit()) {
+					int ch = _getch();
+					if (ch == ESCAPE) console.ClearPreset();
 					break;
 				}
+
+				console.ClearPreset();
 			}
 			break;
 		default:
