@@ -15,3 +15,5 @@ uintptr_t FindDMAAddy(HANDLE hProc, uintptr_t ptr, vector<unsigned int> offsets)
 uintptr_t FindDMAAddy(HANDLE hProc, uintptr_t ptr, unsigned int offset);
 
 float FindCurrentReputation(HANDLE hProc, uintptr_t);
+
+void clearLastLines(int n);
